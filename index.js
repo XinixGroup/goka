@@ -3,6 +3,8 @@ const WinstonCloudWatch = require('winston-cloudwatch');
 const dayjs = require('dayjs')
 const { v4: uuidv4 } = require('uuid');
 
+const { NODE_ENV } = process.env;
+
 function setup(opts) {
   const defaultLevels = {
     error: 0,
@@ -15,9 +17,10 @@ function setup(opts) {
   const levels = opts.levels || defaultLevels
   const logLevel = opts.level || 'debug'
   const appName = opts.name || 'app'
-  const awsAccessKeyId = opts.AWS_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID
-  const awsSecretKey = opts.AWS_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY
-  const awsRegion = opts.AWS_REGION || process.env.AWS_REGION
+  const awsAccessKeyId = opts.AWS_ACCESS_KEY_ID
+  const awsSecretKey = opts.AWS_SECRET_ACCESS_KEY
+  const awsRegion = opts.AWS_REGION
+  const useCloud = opts.useCloud || NODE_ENV === 'staging' || NODE_ENV === 'production'
 
   const simpleConsoleFormat = winston.format.printf(({ level, message }) => {
     if (typeof message === 'object') {
@@ -58,7 +61,7 @@ function setup(opts) {
   logger
     .add(consoleTransport)
 
-  if (process.env.NODE_ENV == 'production') {
+  if (useCloud) {
     logger
       .clear()
       .add(cloudTransport)
